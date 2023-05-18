@@ -151,6 +151,11 @@ class User {
    * Data can include:
    *   { firstName, lastName, password, email, isAdmin }
    *
+   * SetCols takes a formated request from the results of the sqlForUpdate
+   * function that is called above it. Username is added to the sql injection
+   * protected variables by being given a number value and having its value
+   * added to the end of the array of values also returned from sqlForUpdate.
+   *
    * Returns { username, firstName, lastName, email, isAdmin }
    *
    * Throws NotFoundError if not found.

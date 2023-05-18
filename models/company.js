@@ -38,12 +38,12 @@ class Company {
                     description,
                     num_employees AS "numEmployees",
                     logo_url AS "logoUrl"`, [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
-        ],
+      handle,
+      name,
+      description,
+      numEmployees,
+      logoUrl,
+    ],
     );
     const company = result.rows[0];
 
@@ -55,7 +55,18 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
+  static async findAll(query) {
+    console.log("findAll Runs.........");
+    if (query) {
+      console.log("if block runs.........");
+      console.log("query.........", query);
+
+      const findQueryResults = Company.findMatching(query);
+      return findQueryResults;
+    }
+
+    console.log("findAll Passes if block.........");
+
     const companiesRes = await db.query(`
         SELECT handle,
                name,
@@ -66,6 +77,50 @@ class Company {
         ORDER BY name`);
     return companiesRes.rows;
   }
+
+  /** Find companies matching query.
+   *
+   * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
+   * */
+
+  static async findMatching(query) {
+    console.log("findMatching Runs.........");
+    console.log("queryString........", query);
+
+    //TODO: How to get greater/less than into sql
+    let queryStrings = []
+    if (query.minEmployees){
+      const minKey = "numEmployees";
+      const minOperator = ">=";
+      const minValue = query.minEmployees;
+      const minQueryString = `${minKey} ${minOperator} ${minValue}`;
+      queryStrings.push(minQueryString);
+    }
+    if (query.maxEmployees){
+      const maxKey = "numEmployees";
+      const maxOperator = "<=";
+      const maxValue = query.maxEmployees;
+      const maxQueryString = `${maxKey} ${maxOperator} ${maxValue}`;
+      queryStrings.push(maxQueryString);
+    }
+    let queryInsert = queryStrings.join(", ");
+    console.log("queryInsert", queryInsert);
+
+    const companiesRes = await db.query(`
+        SELECT handle,
+              name,
+              description,
+              num_employees AS "numEmployees",
+              logo_url      AS "logoUrl"
+        FROM companies
+        WHERE ${queryInsert}
+        ORDER BY name`);
+    return companiesRes.rows;
+  }
+
+
+
+
 
   /** Given a company handle, return data about company.
    *
@@ -99,6 +154,11 @@ class Company {
    *
    * Data can include: {name, description, numEmployees, logoUrl}
    *
+   * SetCols takes a formated request from the results of the sqlForUpdate
+   * function that is called above it. handle is added to the sql injection
+   * protected variables by being given a number value and having its value
+   * added to the end of the array of values also returned from sqlForUpdate.
+   *
    * Returns {handle, name, description, numEmployees, logoUrl}
    *
    * Throws NotFoundError if not found.
@@ -106,12 +166,14 @@ class Company {
 
   static async update(handle, data) {
     const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          numEmployees: "num_employees",
-          logoUrl: "logo_url",
-        });
+      data,
+      {
+        numEmployees: "num_employees",
+        logoUrl: "logo_url",
+      });
     const handleVarIdx = "$" + (values.length + 1);
+    console.log("handleVarIdx", handleVarIdx);
+
 
     const querySql = `
         UPDATE companies
