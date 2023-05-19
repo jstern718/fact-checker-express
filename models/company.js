@@ -58,7 +58,7 @@ class Company {
   static async findAll(query) {
 
     let results = Company.findMatching(query)
-    console.log("results....", results);
+    // console.log("results....", results);
     let [whereInsert, values] = results;
 
     const companiesRes = await db.query(`
@@ -82,13 +82,14 @@ class Company {
    * string.* */
 
   static findMatching(query) {
+
     let queryStrings = []
     let values = [];
     let count = 1;
     let whereInsert;
 
     if (query){
-      console.log("run experiment block")
+
       //minEmployees
       if (query.minEmployees){
         const minQueryString = `num_employees >= $${count}`;
@@ -125,12 +126,7 @@ class Company {
     if (whereInsert){
       whereInsert = "WHERE " + whereInsert;
     }
-
-
-    console.log("values......", values)
-    console.log("type.....", typeof values)
-
-    console.log("before return ..........", whereInsert, values);
+    // console.log("before return ..........", whereInsert, values);
     return [whereInsert, values];
   }
 
@@ -142,7 +138,7 @@ class Company {
    * Throws NotFoundError if not found.
    **/
 
-  static async get(handle) {
+  static async get(handle){
     const companyRes = await db.query(`
         SELECT handle,
                name,
@@ -221,6 +217,5 @@ class Company {
     if (!company) throw new NotFoundError(`No company: ${handle}`);
   }
 }
-
 
 module.exports = Company;

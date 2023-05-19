@@ -1,5 +1,6 @@
 "use strict";
 
+
 const db = require("../db.js");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const Company = require("./company.js");
@@ -100,7 +101,7 @@ describe("findMatching", function () {
         // expect(results).toEqual(
         //     "minEmployees cannot be greater than maxEmployees"
         // );
-        expect(()=>beforeEach(
+        expect(()=>company.findMatching(
           minEmployees, maxEmployees).toThrowError(BadRequestError));
     });
 
