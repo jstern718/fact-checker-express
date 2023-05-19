@@ -1,0 +1,9 @@
+SELECT handle,
+               name,
+               description,
+               num_employees AS "numEmployees",
+               logo_url      AS "logoUrl"
+        FROM companies
+        WHERE num_employees >= $1 AND num_employees <= $2 AND name ILIKE $3
+        ORDER BY name`,
+        [2, 3, "%c%"]);

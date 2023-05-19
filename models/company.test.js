@@ -15,6 +15,8 @@ beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
+
+
 /************************************** create */
 
 describe("create", function () {
@@ -86,6 +88,57 @@ describe("findAll", function () {
     ]);
   });
 });
+
+/************************************** findMatching */
+
+describe("findMatching", function () {
+
+    test("error: min>max employees", async function () {
+        let minEmployees = 350;
+        let maxEmployees = 300 ;
+        // let results = await Company.findMatching(query)
+        // expect(results).toEqual(
+        //     "minEmployees cannot be greater than maxEmployees"
+        // );
+        expect(()=>beforeEach(
+          minEmployees, maxEmployees).toThrowError(BadRequestError));
+    });
+
+    test("works: min employees", async function () {
+        let query = { minEmployees: 3 };
+        let results = await Company.findMatching(query);
+        let [whereInsert, values] = results;
+        expect(whereInsert).toEqual("WHERE num_employees >= $1");
+        expect(values).toEqual([3]);
+    });
+
+    test("works: max employees", async function () {
+      let query = { maxEmployees: 1 };
+      let results = await Company.findMatching(query)
+      let [whereInsert, values] = results;
+      expect(whereInsert).toEqual("WHERE num_employees <= $1");
+      expect(values).toEqual([1]);
+    });
+
+    test("works: nameLike", async function () {
+        let query = { nameLike: "c" };
+        let results = await Company.findMatching(query)
+        let [whereInsert, values] = results;
+        expect(whereInsert).toEqual("WHERE name ILIKE $1");
+        expect(values).toEqual(["%c%"]);
+    });
+
+    test("works: all 3 functions", async function (){
+      let query = { minEmployees: 2, maxEmployees: 3, nameLike: "c" };
+      let results = await Company.findMatching(query)
+      let [whereInsert, values] = results;
+      expect(whereInsert).toEqual(
+        "WHERE num_employees >= $1 AND num_employees <= $2 AND name ILIKE $3"
+      );
+      expect(values).toEqual([2, 3, "%c%"]);
+    });
+});
+
 
 /************************************** get */
 

@@ -50,89 +50,102 @@ class Company {
     return company;
   }
 
-  /** Finds all companies or finds filtered list of companies.
-   * Takes query string from get request.
+  /** Find all companies.
+   *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
   static async findAll(query) {
+    console.log("findAll Runs.........");
+    if (query) {
+      console.log("if block runs.........");
+      console.log("query.........", query);
 
-    let results = Company.findMatching(query)
-    console.log("results....", results);
-    let [whereInsert, values] = results;
+      const findQueryResults = Company.findMatching(query);
+      return findQueryResults;
+      //TODO:
+    }
+
+    console.log("findAll Passes if block.........");
 
     const companiesRes = await db.query(`
         SELECT handle,
-                name,
-                description,
-                num_employees AS "numEmployees",
-                logo_url      AS "logoUrl"
-                FROM companies
-        ${whereInsert}
-        ORDER BY name`,
-    values);
+               name,
+               description,
+               num_employees AS "numEmployees",
+               logo_url      AS "logoUrl"
+        FROM companies
+        ORDER BY name`);
     return companiesRes.rows;
   }
 
-  /** Assists findAll() in search by adding filtering capability.
-   * Takes query object passed into findAll function and returns
-   * an object with two keys (whereInsert, values), one holding a
-   * WHERE string to be inserted into findAll's sql query; the other
-   * holding, an array with the values, corresponding to the WHERE
-   * string.* */
+  /** Find companies matching query.
+   *
+   * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
+   * */
 
-  static findMatching(query) {
+  //get filter returns fully generated where statement and array values
+  static async findMatching(query) {
+    console.log("findMatching Runs.........");
+    console.log("query........", query);
+
+    //scope within whole function
     let queryStrings = []
     let values = [];
     let count = 1;
-    let whereInsert;
 
-    if (query){
-      console.log("run experiment block")
-      //minEmployees
-      if (query.minEmployees){
-        const minQueryString = `num_employees >= $${count}`;
-        count += 1;
-        queryStrings.push(minQueryString);
-        values.push(query.minEmployees);
-      }
-
-      //maxEmployees
-      if (query.maxEmployees){
-        const maxQueryString = `num_employees <= $${count}`;
-        count += 1;
-        queryStrings.push(maxQueryString);
-        console.log("max.....", query.maxEmployees)
-        values.push(query.maxEmployees);
-      }
-
-      if (query.minEmployees && query.maxEmployees){
-        if (query.minEmployees > query.maxEmployees){
-          throw new BadRequestError(
-            `minEmployees cannot be greater than maxEmployees`);
-        }
-      }
-
-        // nameLike
-        if (query.nameLike){
-            const nameQueryString = `name ILIKE $${count}`;
-            count += 1;
-            queryStrings.push(nameQueryString);
-            values.push(`%${ query.nameLike }%`);
-        }
-        whereInsert = queryStrings.join(" AND ");
-    }
-    if (whereInsert){
-      whereInsert = "WHERE " + whereInsert;
+    //minEmployees
+    if (query.minEmployees){
+      const minValue = parseInt(query.minEmployees);
+      const minQueryString = `numEmployees >= $${count}`;
+      count += 1;
+      queryStrings.push(minQueryString);
+      values.push(minValue);
     }
 
+    //maxEmployees
+    //TODO: just use template literal
+    if (query.maxEmployees){
+      const maxValue = parseInt(query.maxEmployees);
+      const maxQueryString = `num_employees <= $${count}`;
+      count += 1;
+      queryStrings.push(maxQueryString);
+      values.push(maxValue);
+    }
 
-    console.log("values......", values)
-    console.log("type.....", typeof values)
+    //nameLike
+    if (query.nameLike){
+      const nameKey = "num_employees";
+      const maxOperator = "<=";
+      const maxValue = parseInt(query.maxEmployees);
+      const maxQueryString = `${maxKey} ${maxOperator} $${count}`;
+      count += 1;
+      queryStrings.push(maxQueryString);
+      values.push(maxValue);
+    }
 
-    console.log("before return ..........", whereInsert, values);
-    return [whereInsert, values];
+    //TODO: just split
+    //combine strings/values to insert
+    let whereInsert = queryStrings.join(" AND ");
+    console.log("whereInsert............", whereInsert);
+
+    const companiesRes = await db.query(`
+        SELECT handle,
+              name,
+              description,
+              num_employees AS "numEmployees",
+              logo_url      AS "logoUrl"
+        FROM companies
+        WHERE ${whereInsert}
+        ORDER BY name`,
+        values);
+    console.log("companiesRes.......", companiesRes);
+    return companiesRes.rows;
   }
+
+
+
+
 
   /** Given a company handle, return data about company.
    *

@@ -17,8 +17,8 @@ async function commonBeforeAll() {
              ('c2', 'C2', 2, 'Desc2', 'http://c2.img'),
              ('c3', 'C3', 3, 'Desc3', 'http://c3.img')`);
 
-  await db.query(`
-      INSERT INTO users(username,
+  await db.query(
+    `INSERT INTO users(username,
                         password,
                         first_name,
                         last_name,

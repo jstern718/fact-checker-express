@@ -20,6 +20,8 @@ const { BadRequestError } = require("../expressError");
  * Returns an object that contains setCols, which is a string of
  * all of the colName(s) and their $([num] values. It also contains
  * an array of the values in the the same order.
+ *
+ * TODO: add example of what it looks like
  */
 
 function sqlForPartialUpdate(dataToUpdate, jsToSql) {
