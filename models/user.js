@@ -63,7 +63,6 @@ class User {
         WHERE username = $1`, [username],
     );
 
-    console.log(username, password, firstName, lastName, email, isAdmin);
     if (duplicateCheck.rows.length > 0) {
       throw new BadRequestError(`Duplicate username: ${username}`);
     }

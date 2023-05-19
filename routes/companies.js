@@ -51,19 +51,29 @@ router.post("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
  * Authorization required: none
  */
 
-router.get("/?:q?", async function (req, res, next) {
+// router.get("/?:q?", async function (req, res, next) {
+router.get("/", async function (req, res, next) {
+
+  let q = req.query;
+  if (req.query.minEmployees !== undefined){
+    q.minEmployees = Number(q.minEmployees);
+  }
+  if (req.query.maxEmployees !== undefined){
+    q.maxEmployees = Number(q.maxEmployees);
+  }
 
   const validator = jsonschema.validate(
-    req.body,
+    q,
     companyQuerySchema,
+    {required: true}
   );
+
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
     throw new BadRequestError(errs);
-    console.log("errs.......", errs);
   }
 
-  let query = req.query || "";
+  let query = q || "";
   const companies = await Company.findAll(query);
   return res.json({ companies });
 });

@@ -103,7 +103,6 @@ class Company {
         const maxQueryString = `num_employees <= $${count}`;
         count += 1;
         queryStrings.push(maxQueryString);
-        console.log("max.....", query.maxEmployees)
         values.push(query.maxEmployees);
       }
 
@@ -180,8 +179,6 @@ class Company {
         logoUrl: "logo_url",
       });
     const handleVarIdx = "$" + (values.length + 1);
-    console.log("handleVarIdx", handleVarIdx);
-
 
     const querySql = `
         UPDATE companies

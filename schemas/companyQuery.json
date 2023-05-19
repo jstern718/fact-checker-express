@@ -4,13 +4,16 @@
     "type": "object",
     "properties": {
         "minEmployees": {
-        "type": "integer"
+        "type": "integer",
+        "minimum": 1
         },
         "maxEmployees": {
-        "type": "integer"
+        "type": "integer",
+        "minimum": 1
         },
         "nameLike": {
-        "type": "string"
+        "type": "string",
+        "minimum": 1
         }
     },
     "additionalProperties": false,

@@ -33,12 +33,12 @@ router.post("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
       userNewSchema,
       { required: true },
   );
-  console.log("runnnnnnn");
+
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
     throw new BadRequestError(errs);
   }
-  console.log("req......", req.body);
+
   const user = await User.register(req.body);
   const token = createToken(user);
   return res.status(201).json({ user, token });
