@@ -95,8 +95,9 @@ describe("findAll", function () {
 describe("findMatching", function () {
 
     test("error: min>max employees", async function () {
+        //TODO: pass as an object like next test
         let minEmployees = 350;
-        let maxEmployees = 300 ;
+        let maxEmployees = 300;
         // let results = await Company.findMatching(query)
         // expect(results).toEqual(
         //     "minEmployees cannot be greater than maxEmployees"

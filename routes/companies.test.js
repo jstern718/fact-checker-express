@@ -11,6 +11,7 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token, u2Token, u3Token,
+  //TODO: change u3 everywhere to adminToken
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -168,6 +169,7 @@ describe("GET /companies", function () {
   });
 
   test("works: all 3 functions", async function () {
+    //TODO: can do .get to just companies, then .query({nameLike:"c"})
     const resp = await request(app).get(
       "/companies/?nameLike=c&maxEmployees=3&minEmployees=2");
     expect(resp.body).toEqual({
@@ -191,6 +193,7 @@ describe("GET /companies", function () {
     });
   });
 
+  //TODO: also test in models models
   test("fails: min>max employees", async function () {
     const resp = await request(app).get(
       "/companies/?nameLike=c&maxEmployees=3&minEmployees=2");
@@ -295,6 +298,7 @@ describe("PATCH /companies/:handle", function () {
     expect(resp.statusCode).toEqual(400);
   });
 
+  //TODO: invalid data for all three types of users
   test("bad request on invalid data", async function () {
     const resp = await request(app)
         .patch(`/companies/c1`)

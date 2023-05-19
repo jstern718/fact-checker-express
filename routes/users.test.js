@@ -165,6 +165,7 @@ describe("GET /users", function () {
     expect(resp.statusCode).toEqual(401);
   });
 
+  //TODO: swap anon w/ user b/c order makes more sense
   test("unauth for user", async function () {
     const resp = await request(app)
         .get("/users")
@@ -191,6 +192,7 @@ describe("GET /users/:username", function () {
     });
   });
 
+  //TODO: swap admin w/ user above
   test("works for admin", async function () {
     const resp = await request(app)
         .get(`/users/u1`)
@@ -329,7 +331,7 @@ describe("PATCH /users/:username", () => {
 /************************************** DELETE /users/:username */
 
 describe("DELETE /users/:username", function () {
-  test("works for users", async function () {
+  test("works for admin", async function () {
     const resp = await request(app)
         .delete(`/users/u1`)
         .set("authorization", `Bearer ${u3Token}`);
