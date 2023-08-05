@@ -42,6 +42,10 @@ This is the Express backend for Jobly.
 
 * GET/POST: /companies
 
+  ![all companies](/screenshots/companiesRoute.png?raw=true)
+
+  ![companies with "Edwards"](/screenshots/companiesLike.png?raw=true)
+
 * GET/PATCH/DELETE: /companies:handle
 
 * GET/POST: /users
