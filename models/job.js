@@ -105,7 +105,7 @@ class Job {
         values.push(query.equity);
       }
 
-        // nameLike
+        //nameLike
         if (query.nameLike){
             const nameQueryString = `name ILIKE $${count}`;
             count += 1;
