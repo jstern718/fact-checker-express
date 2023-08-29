@@ -7,11 +7,11 @@
         "type": "integer",
         "minimum": 1
         },
-        "equity": {
-        "type": "number",
+        "hasEquity": {
+        "type": "boolean",
         "maximum": 1
         },
-        "nameLike": {
+        "titleLike": {
         "type": "string",
         "minimum": 1
         }

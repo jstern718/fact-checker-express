@@ -7,6 +7,7 @@ const { sqlForPartialUpdate } = require("../helpers/sql");
 /** Related functions for companies. */
 
 class Company {
+
   /** Create a company (from data), update db, return new company data.
    *
    * data should be { handle, name, description, numEmployees, logoUrl }

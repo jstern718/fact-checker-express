@@ -7,6 +7,7 @@ const { sqlForPartialUpdate } = require("../helpers/sql");
 /** Related functions for jobs. */
 
 class Job {
+
   /** Create a job (from data), update db, return new job data.
    *
    * data should be { title, salary, equity, company_handle }
@@ -16,14 +17,22 @@ class Job {
    * Throws BadRequestError if job already in database.
    * */
 
-  static async create({ title, salary, equity, company_handle }) {
-    const duplicateCheck = await db.query(`
-        SELECT title, company_handle
-        FROM jobs
-        WHERE title = $1, company_handle = $2`, [title, company_handle]);
+  static async create({ title, salary, equity, companyHandle }) {
 
-    if (duplicateCheck.rows[0])
-      throw new BadRequestError(`Duplicate job: ${title} at ${company_handle}`);
+    const duplicateCheck = await db.query(`
+        SELECT title
+        FROM jobs
+        WHERE title = $1
+        AND company_handle = $2`,
+        [title, companyHandle],
+    );
+
+    if (duplicateCheck.rows[0]){
+        console.log("dupe check fail");
+        throw new BadRequestError(`Duplicate job: ${title} at ${company_handle}`);
+    }
+
+    console.log("equity", equity, typeof equity);
 
     const result = await db.query(`
                 INSERT INTO jobs (title,
@@ -31,19 +40,17 @@ class Job {
                                        equity,
                                        company_handle)
                 VALUES ($1, $2, $3, $4)
-                RETURNING
-                    id,
-                    title,
+                RETURNING title,
                     salary,
                     equity,
                     company_handle AS "companyHandle"`, [
-      id,
       title,
       salary,
       equity,
       companyHandle,
     ],
     );
+    console.log(result.title, result, equity, typeof result.equity);
     const job = result.rows[0];
 
     return job;
@@ -68,7 +75,7 @@ class Job {
                 company_handle AS "companyTitle"
                 FROM jobs
         ${whereInsert}
-        ORDER BY name`,
+        ORDER BY id`,
     values);
     return jobsRes.rows;
   }
@@ -97,21 +104,29 @@ class Job {
         values.push(query.minSalary);
       }
 
-      //equity
-      if (query.equity){
-        const equityString = `equity >= $${count}`;
-        count += 1;
-        queryStrings.push(equityString);
-        values.push(query.equity);
+      console.log("query.hasEquity", query.hasEquity);
+      //hasEquity
+      if (query.hasEquity === true){
+        const equityQueryString = `equity > 0`;
+        // count += 1;
+        queryStrings.push(equityQueryString);
+        // values.push(0);
       }
 
-        //nameLike
-        if (query.nameLike){
-            const nameQueryString = `name ILIKE $${count}`;
+      else{
+        const equityQueryString = `equity >= 0`;
+        // count += 1;
+        queryStrings.push(equityQueryString);
+        // values.push(0);
+      }
+
+        //titleLike
+      if (query.titleLike){
+            const titleQueryString = `title ILIKE $${count}`;
             count += 1;
-            queryStrings.push(nameQueryString);
-            values.push(`%${ query.nameLike }%`);
-        }
+            queryStrings.push(titleQueryString);
+            values.push(`%${ query.titleLike }%`);
+      }
         whereInsert = queryStrings.join(" AND ");
     }
 
@@ -163,48 +178,48 @@ class Job {
    * Throws NotFoundError if not found.
    */
 
-  static async update(handle, data) {
-    const { setCols, values } = sqlForPartialUpdate(
-      data,
-      {
-        numEmployees: "num_employees",
-        logoUrl: "logo_url",
-      });
-    const handleVarIdx = "$" + (values.length + 1);
+//   static async update(handle, data) {
+//     const { setCols, values } = sqlForPartialUpdate(
+//       data,
+//       {
+//         numEmployees: "num_employees",
+//         logoUrl: "logo_url",
+//       });
+//     const handleVarIdx = "$" + (values.length + 1);
 
-    const querySql = `
-        UPDATE companies
-        SET ${setCols}
-        WHERE handle = ${handleVarIdx}
-        RETURNING
-            handle,
-            name,
-            description,
-            num_employees AS "numEmployees",
-            logo_url AS "logoUrl"`;
-    const result = await db.query(querySql, [...values, handle]);
-    const company = result.rows[0];
+//     const querySql = `
+//         UPDATE companies
+//         SET ${setCols}
+//         WHERE handle = ${handleVarIdx}
+//         RETURNING
+//             handle,
+//             name,
+//             description,
+//             num_employees AS "numEmployees",
+//             logo_url AS "logoUrl"`;
+//     const result = await db.query(querySql, [...values, handle]);
+//     const company = result.rows[0];
 
-    if (!company) throw new NotFoundError(`No company: ${handle}`);
+//     if (!company) throw new NotFoundError(`No company: ${handle}`);
 
-    return company;
-  }
+//     return company;
+//   }
 
-  /** Delete given company from database; returns undefined.
-   *
-   * Throws NotFoundError if company not found.
-   **/
+//   /** Delete given company from database; returns undefined.
+//    *
+//    * Throws NotFoundError if company not found.
+//    **/
 
-  static async remove(handle) {
-    const result = await db.query(`
-        DELETE
-        FROM companies
-        WHERE handle = $1
-        RETURNING handle`, [handle]);
-    const company = result.rows[0];
+//   static async remove(handle) {
+//     const result = await db.query(`
+//         DELETE
+//         FROM companies
+//         WHERE handle = $1
+//         RETURNING handle`, [handle]);
+//     const company = result.rows[0];
 
-    if (!company) throw new NotFoundError(`No company: ${handle}`);
-  }
+//     if (!company) throw new NotFoundError(`No company: ${handle}`);
+//   }
 }
 
-module.exports = Company;
+module.exports = Job;

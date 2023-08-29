@@ -26,11 +26,14 @@ const router = new express.Router();
  */
 
 router.post("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
-  const validator = jsonschema.validate(
+    console.log("job post route");
+
+    const validator = jsonschema.validate(
     req.body,
     jobNewSchema,
     {required: true}
   );
+
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
     throw new BadRequestError(errs);
@@ -45,7 +48,7 @@ router.post("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
  *
  * Can filter on provided search filters:
  * - minSalary
- * - equity
+ * - hasEquity
  * - nameLike (will find case-insensitive, partial matches)
  *
  * Authorization required: none
@@ -54,13 +57,22 @@ router.post("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
 // router.get("/?:q?", async function (req, res, next) {
 router.get("/", async function (req, res, next) {
 
-  let q = req.query;
-  if (req.query.minSalary !== undefined){
-    q.minSalary = Number(q.minSalary);
-  }
-  if (req.query.equity !== undefined){
-    q.maxEmployees = Number(q.equity);
-  }
+    let q = req.query;
+
+    if (req.query.minSalary !== undefined){
+        q.minSalary = Number(q.minSalary);
+    }
+
+    if (req.query.hasEquity !== undefined){
+        console.log("req.query", req.query.hasEquity);
+        console.log("type", typeof(req.query.hasEquity));
+        if (req.query.hasEquity === "true"){
+            q.hasEquity = true;
+        }
+        else{
+            q.hasEquity = undefined;
+        }
+    }
 
   const validator = jsonschema.validate(
     q,
@@ -85,10 +97,11 @@ router.get("/", async function (req, res, next) {
  * Authorization required: none
  */
 
-router.get("/:handle", async function (req, res, next) {
-  const job = await Job.get(req.params.handle);
-  return res.json({ job });
-});
+// router.get("/:handle", async function (req, res, next) {
+//   console.log("get handle");
+//   const job = await Job.get(req.params.handle);
+//   return res.json({ job });
+// });
 
 /** PATCH /[handle] { fld1, fld2, ... } => { company }
  *
@@ -101,30 +114,30 @@ router.get("/:handle", async function (req, res, next) {
  * Admin authorization required
  */
 
-router.patch("/:handle", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
-  const validator = jsonschema.validate(
-    req.body,
-    companyUpdateSchema,
-    {required:true}
-  );
-  if (!validator.valid) {
-    const errs = validator.errors.map(e => e.stack);
-    throw new BadRequestError(errs);
-  }
+// router.patch("/:handle", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
+//   const validator = jsonschema.validate(
+//     req.body,
+//     companyUpdateSchema,
+//     {required:true}
+//   );
+//   if (!validator.valid) {
+//     const errs = validator.errors.map(e => e.stack);
+//     throw new BadRequestError(errs);
+//   }
 
-  const company = await Company.update(req.params.handle, req.body);
-  return res.json({ company });
-});
+//   const company = await Company.update(req.params.handle, req.body);
+//   return res.json({ company });
+// });
 
-/** DELETE /[handle]  =>  { deleted: handle }
- *
- * Admin authorization required
- */
+// /** DELETE /[handle]  =>  { deleted: handle }
+//  *
+//  * Admin authorization required
+//  */
 
-router.delete("/:handle", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
-  await Company.remove(req.params.handle);
-  return res.json({ deleted: req.params.handle });
-});
+// router.delete("/:handle", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
+//   await Company.remove(req.params.handle);
+//   return res.json({ deleted: req.params.handle });
+// });
 
 
 module.exports = router;
