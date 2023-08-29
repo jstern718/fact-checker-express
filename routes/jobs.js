@@ -97,11 +97,11 @@ router.get("/", async function (req, res, next) {
  * Authorization required: none
  */
 
-// router.get("/:handle", async function (req, res, next) {
-//   console.log("get handle");
-//   const job = await Job.get(req.params.handle);
-//   return res.json({ job });
-// });
+router.get("/:handle", async function (req, res, next) {
+  console.log("get handle");
+  const job = await Job.findById(req.params.handle);
+  return res.json({ job });
+});
 
 /** PATCH /[handle] { fld1, fld2, ... } => { company }
  *

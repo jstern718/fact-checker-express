@@ -17,149 +17,138 @@ class Job {
    * Throws BadRequestError if job already in database.
    * */
 
-  static async create({ title, salary, equity, companyHandle }) {
+    static async create({ title, salary, equity, companyHandle }) {
 
-    const duplicateCheck = await db.query(`
-        SELECT title
-        FROM jobs
-        WHERE title = $1
-        AND company_handle = $2`,
-        [title, companyHandle],
-    );
+        const duplicateCheck = await db.query(`
+            SELECT title
+            FROM jobs
+            WHERE title = $1
+            AND company_handle = $2`,
+            [title, companyHandle],
+        );
 
-    if (duplicateCheck.rows[0]){
-        console.log("dupe check fail");
-        throw new BadRequestError(`Duplicate job: ${title} at ${company_handle}`);
-    }
+        if (duplicateCheck.rows[0]){
+            console.log("dupe check fail");
+            throw new BadRequestError(`Duplicate job: ${title} at ${companyHandle}`);
+        }
 
-    console.log("equity", equity, typeof equity);
-
-    const result = await db.query(`
-                INSERT INTO jobs (title,
-                                       salary,
-                                       equity,
-                                       company_handle)
-                VALUES ($1, $2, $3, $4)
-                RETURNING title,
+        const result = await db.query(`
+                    INSERT INTO jobs (title,
+                                        salary,
+                                        equity,
+                                        company_handle)
+                    VALUES ($1, $2, $3, $4)
+                    RETURNING title,
+                        salary,
+                        equity,
+                        company_handle AS "companyHandle"`, [
+                    title,
                     salary,
                     equity,
-                    company_handle AS "companyHandle"`, [
-      title,
-      salary,
-      equity,
-      companyHandle,
-    ],
-    );
-    console.log(result.title, result, equity, typeof result.equity);
-    const job = result.rows[0];
+                    companyHandle,
+                    ],
+        );
 
-    return job;
+        const job = result.rows[0];
+
+
+        return job;
+    }
+
+    /** Finds all jobs or finds filtered list of jobs.
+    * Takes query string from get request.
+    * Returns [{ title, salary, equity, companyHandle }, ...]
+    * */
+
+    static async findAll(query) {
+
+        let results = Job.findMatching(query)
+        // console.log("results....", results);
+        let [whereInsert, values] = results;
+
+        const jobsRes = await db.query(`
+            SELECT title,
+                    salary,
+                    equity,
+                    company_handle
+                    FROM jobs
+            ${whereInsert}
+            ORDER BY id`,
+        values);
+        return jobsRes.rows;
+    }
+
+    /** Assists findAll() in search by adding filtering capability.
+    * Takes query object passed into findAll function and returns
+    * an object with two keys (whereInsert, values), one holding a
+    * WHERE string to be inserted into findAll's sql query; the other
+    * holding, an array with the values, corresponding to the WHERE
+    * string.* */
+
+    static findMatching(query) {
+
+        let queryStrings = []
+        let values = [];
+        let count = 1;
+        let whereInsert;
+
+        if (query){
+
+            //minSalary
+            if (query.minSalary){
+                const minQueryString = `salary >= $${count}`;
+                count += 1;
+                queryStrings.push(minQueryString);
+                values.push(query.minSalary);
+            }
+
+            //hasEquity
+            if (query.hasEquity === true){
+                const equityQueryString = `equity > 0`;
+                queryStrings.push(equityQueryString);
+            }
+
+            //titleLike
+            if (query.titleLike){
+                const titleQueryString = `title ILIKE $${count}`;
+                count += 1;
+                queryStrings.push(titleQueryString);
+                values.push(`%${ query.titleLike }%`);
+            }
+
+            whereInsert = queryStrings.join(" AND ");
+        }
+
+        if (whereInsert){
+        whereInsert = "WHERE " + whereInsert;
+        }
+
+        return [whereInsert, values];
   }
 
-  /** Finds all jobs or finds filtered list of jobs.
-   * Takes query string from get request.
-   * Returns [{ title, salary, equity, companyHandle }, ...]
-   * */
+    /** Given a job id, return data about job.
+    *
+    * Returns { id, title, salary, equity, company_handle }
+    *
+    * Throws NotFoundError if not found.
+    **/
 
-  static async findAll(query) {
-
-    let results = Job.findMatching(query)
-    // console.log("results....", results);
-    let [whereInsert, values] = results;
-
-    const jobsRes = await db.query(`
-        SELECT id,
+    static async findById(id){
+        const results = await db.query(`
+            SELECT id,
                 title,
                 salary,
                 equity,
-                company_handle AS "companyTitle"
-                FROM jobs
-        ${whereInsert}
-        ORDER BY id`,
-    values);
-    return jobsRes.rows;
-  }
+                company_handle AS "companyHandle"
+            FROM jobs
+            WHERE id = $1`, [id]);
 
-  /** Assists findAll() in search by adding filtering capability.
-   * Takes query object passed into findAll function and returns
-   * an object with two keys (whereInsert, values), one holding a
-   * WHERE string to be inserted into findAll's sql query; the other
-   * holding, an array with the values, corresponding to the WHERE
-   * string.* */
+        const job = results.rows[0];
 
-  static findMatching(query) {
+        if (!job) throw new NotFoundError(`No job: ${id}`);
 
-    let queryStrings = []
-    let values = [];
-    let count = 1;
-    let whereInsert;
-
-    if (query){
-
-      //minSalary
-      if (query.minSalary){
-        const minQueryString = `salary >= $${count}`;
-        count += 1;
-        queryStrings.push(minQueryString);
-        values.push(query.minSalary);
-      }
-
-      console.log("query.hasEquity", query.hasEquity);
-      //hasEquity
-      if (query.hasEquity === true){
-        const equityQueryString = `equity > 0`;
-        // count += 1;
-        queryStrings.push(equityQueryString);
-        // values.push(0);
-      }
-
-      else{
-        const equityQueryString = `equity >= 0`;
-        // count += 1;
-        queryStrings.push(equityQueryString);
-        // values.push(0);
-      }
-
-        //titleLike
-      if (query.titleLike){
-            const titleQueryString = `title ILIKE $${count}`;
-            count += 1;
-            queryStrings.push(titleQueryString);
-            values.push(`%${ query.titleLike }%`);
-      }
-        whereInsert = queryStrings.join(" AND ");
+        return job;
     }
-
-    if (whereInsert){
-      whereInsert = "WHERE " + whereInsert;
-    }
-    // console.log("before return ..........", whereInsert, values);
-    return [whereInsert, values];
-  }
-
-  /** Given a job id, return data about job.
-   *
-   * Returns { id, title, salary, equity, company_handle }
-   *
-   * Throws NotFoundError if not found.
-   **/
-
-  static async get(id){
-    const jobRes = await db.query(`
-        SELECT id,
-               title,
-               salary,
-               equity,
-               company_handle AS "companyHandle"
-        FROM jobs
-        WHERE handle = $1`, [id]);
-
-    const job = jobRes.rows[0];
-
-    if (!job) throw new NotFoundError(`No job: ${id}`);
-
-    return job;
-  }
 
   /** Update company data with `data`.
    *
