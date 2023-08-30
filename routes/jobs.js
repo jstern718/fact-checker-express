@@ -10,7 +10,7 @@ const { ensureLoggedIn, checkIfAdmin } = require("../middleware/auth");
 const Job = require("../models/job");
 
 const jobNewSchema = require("../schemas/jobNew.json");
-// const jobUpdateSchema = require("../schemas/jobUpdate.json");
+const jobUpdateSchema = require("../schemas/jobUpdate.json");
 const jobQuerySchema = require("../schemas/jobQuery.json");
 
 const router = new express.Router();
@@ -97,37 +97,42 @@ router.get("/", async function (req, res, next) {
  * Authorization required: none
  */
 
-router.get("/:handle", async function (req, res, next) {
-  console.log("get handle");
-  const job = await Job.findById(req.params.handle);
+router.get("/:id", async function (req, res, next) {
+  console.log("get job by id");
+  const job = await Job.findById(req.params.id);
   return res.json({ job });
 });
 
-/** PATCH /[handle] { fld1, fld2, ... } => { company }
+/** PATCH /[id] { field1, field2, ... } => { job }
  *
- * Patches company data.
+ * Patches job data.
  *
- * fields can be: { name, description, numEmployees, logo_url }
+ * fields can be: { title, salary, equity, companyHandle }
  *
- * Returns { handle, name, description, numEmployees, logo_url }
+ * Returns { id, title, salary, equity, companyHandle }
  *
  * Admin authorization required
  */
 
-// router.patch("/:handle", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
-//   const validator = jsonschema.validate(
-//     req.body,
-//     companyUpdateSchema,
-//     {required:true}
-//   );
-//   if (!validator.valid) {
-//     const errs = validator.errors.map(e => e.stack);
-//     throw new BadRequestError(errs);
-//   }
+router.patch("/:id", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
+  console.log("run jobs patch route");
 
-//   const company = await Company.update(req.params.handle, req.body);
-//   return res.json({ company });
-// });
+  req.body.salary = Number(req.body.salary);
+  req.body.equity = Number(req.body.equity);
+
+  const validator = jsonschema.validate(
+    req.body,
+    jobUpdateSchema,
+    {required:true}
+  );
+  if (!validator.valid) {
+    const errs = validator.errors.map(e => e.stack);
+    throw new BadRequestError(errs);
+  }
+
+  const updatedJob = await Job.update(req.params.id, req.body);
+  return res.json(updatedJob);
+});
 
 // /** DELETE /[handle]  =>  { deleted: handle }
 //  *
