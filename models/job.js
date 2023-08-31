@@ -161,15 +161,15 @@ class Job {
    * SetCols takes a formated request from the results of the sqlForUpdate
    * function that is called above it.
    *
-   * TODO: still true? handle is added to the sql injection
-   * protected variables by being given a number value and having its value
-   * added to the end of the array of values also returned from sqlForUpdate.
+   * The id is added to the sql injection protected variables by being given
+   * a number value and having its value added to the end of the array of
+   * values also returned from sqlForUpdate.
    *
    * Returns {title, salary, equity, companyHandle}
    *
    * Throws NotFoundError if not found.
    */
-ß
+
   static async update(id, data) {
     console.log("run update job");
 
@@ -177,6 +177,8 @@ class Job {
       data,
       { companyHandle: "company_Handle" }
     );
+
+    if(!setCols){ throw new BadRequestError(`No data entered for update`);}
 
     const querySql = `
         UPDATE jobs
@@ -190,13 +192,15 @@ class Job {
             company_handle AS "companyHandle"`;
 
     const result = await db.query(querySql, [...values]);
+    console.log("result", result);
     const updatedJob = result.rows[0];
 
     if (!updatedJob) throw new NotFoundError(`No updatedJob: ${id}`);
 
-    //TODO: included object name by putting in braces to be consistent with
-    // parts, but don't think it's right;
-    return {updatedJob};
+    //TODO: didn't include object name by putting in braces. Makes more sense
+    //this way, but isn't consistent with previous models
+
+    return updatedJob;
   }
 
   /** Delete given company from database; returns undefined.
@@ -204,15 +208,16 @@ class Job {
    * Throws NotFoundError if company not found.
    **/
 
-  static async remove(handle) {
+  static async remove(id) {
     const result = await db.query(`
         DELETE
-        FROM companies
-        WHERE handle = $1
-        RETURNING handle`, [handle]);
-    const company = result.rows[0];
+        FROM jobs
+        WHERE id = $1
+        RETURNING id`, [id]);
 
-    if (!company) throw new NotFoundError(`No company: ${handle}`);
+    const deletedJob = result.rows[0];
+
+    if (!deletedJob) throw new NotFoundError(`No job: ${id}`);
   }
 }
 
