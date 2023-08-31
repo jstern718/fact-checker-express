@@ -28,8 +28,7 @@ const { BadRequestError } = require("../expressError");
  */
 
 function sqlForPartialUpdate(dataToUpdate, jsToSql) {
-  console.log("run sqlForPartialUpdate")
-  console.log("data", dataToUpdate, "translate", jsToSql)
+//   console.log("run sqlForPartialUpdate");
 
   const keys = Object.keys(dataToUpdate);
   if (keys.length === 0) throw new BadRequestError("No data");

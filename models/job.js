@@ -28,7 +28,6 @@ class Job {
         );
 
         if (duplicateCheck.rows[0]){
-            console.log("dupe check fail");
             throw new BadRequestError(`Duplicate job: ${title} at ${companyHandle}`);
         }
 
@@ -63,7 +62,6 @@ class Job {
     static async findAll(query) {
 
         let results = Job.findMatching(query)
-        // console.log("results....", results);
         let [whereInsert, values] = results;
 
         const jobsRes = await db.query(`
@@ -171,8 +169,6 @@ class Job {
    */
 
   static async update(id, data) {
-    console.log("run update job");
-
     const { setCols, values } = sqlForPartialUpdate(
       data,
       { companyHandle: "company_Handle" }
@@ -192,13 +188,13 @@ class Job {
             company_handle AS "companyHandle"`;
 
     const result = await db.query(querySql, [...values]);
-    console.log("result", result);
     const updatedJob = result.rows[0];
 
     if (!updatedJob) throw new NotFoundError(`No updatedJob: ${id}`);
 
-    //TODO: didn't include object name by putting in braces. Makes more sense
-    //this way, but isn't consistent with previous models
+    //NOTE: didn't include object name by putting in braces. Makes more sense
+    //this way, but isn't consistent with previous models. Check if either
+    //method presents issues later
 
     return updatedJob;
   }

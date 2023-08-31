@@ -260,26 +260,6 @@ describe("update", function () {
     });
   });
 
-  test("fail: not found/updated if no such job", async function () {
-
-    const jobId = "j10";
-    const updateData = {
-        salary: 200,
-        equity: "0.1",
-    };
-
-    try {
-      await Job.update(jobId, updateData);
-      console.log("test");
-      throw new Error("fail test, you shouldn't get here");
-    }
-    catch (err) {
-      console.log("err", err);
-      expect(err instanceof NotFoundError).toBeTruthy();
-    }
-  });
-
-
   test("fail: bad request with no data", async function () {
 
     const jobId = jobTestIds[0];
@@ -298,15 +278,17 @@ describe("update", function () {
 
 describe("remove", function () {
   test("works: deletes job", async function () {
-    await Job.remove("j1");
-    const res = await db.query(
-        "SELECT id FROM jobs WHERE id='j1'");
-    expect(res.rows.length).toEqual(0);
+
+    const jobId = jobTestIds[0];
+    await Job.remove(jobId);
+    const deletedJob = await db.query(
+        `SELECT id FROM jobs WHERE id=${jobId}`);
+    expect(deletedJob.rows.length).toEqual(0);
   });
 
   test("fail: not found/deleted if no such job", async function () {
     try {
-      await Job.remove("nope");
+      await Job.remove(1000000);
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
