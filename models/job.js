@@ -132,6 +132,12 @@ class Job {
     **/
 
     static async findById(id){
+        //console.log("run find by Id");
+
+        if (typeof id != "number"){
+            throw new NotFoundError(`No job: ${id}`);
+        }
+
         const results = await db.query(`
             SELECT id,
                 title,

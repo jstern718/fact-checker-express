@@ -28,8 +28,7 @@ const router = express.Router();
  **/
 
 router.post("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
-  debugger
-  console.log("create user........")
+  //console.log("create user........")
   const validator = jsonschema.validate(
       req.body,
       userNewSchema,

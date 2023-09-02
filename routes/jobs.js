@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError } = require("../expressError");
+const { BadRequestError, NotFoundError } = require("../expressError");
 const { ensureLoggedIn, checkIfAdmin } = require("../middleware/auth");
 const Job = require("../models/job");
 
@@ -26,7 +26,7 @@ const router = new express.Router();
  */
 
 router.post("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
-    console.log("job post route");
+    // console.log("job post route");
 
     const validator = jsonschema.validate(
     req.body,
@@ -64,8 +64,6 @@ router.get("/", async function (req, res, next) {
     }
 
     if (req.query.hasEquity !== undefined){
-        console.log("req.query", req.query.hasEquity);
-        console.log("type", typeof(req.query.hasEquity));
         if (req.query.hasEquity === "true"){
             q.hasEquity = true;
         }
@@ -98,8 +96,9 @@ router.get("/", async function (req, res, next) {
  */
 
 router.get("/:id", async function (req, res, next) {
-  console.log("get job by id");
-  const job = await Job.findById(req.params.id);
+
+  const id = Number(req.params.id);
+  const job = await Job.findById(id);
   return res.json({ job });
 });
 
@@ -115,16 +114,13 @@ router.get("/:id", async function (req, res, next) {
  */
 
 router.patch("/:id", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
-  console.log("run jobs patch route");
-
-  req.body.salary = Number(req.body.salary);
-  req.body.equity = Number(req.body.equity);
+  //console.log("run jobs patch route");
 
   const validator = jsonschema.validate(
     req.body,
-    jobUpdateSchema,
-    {required:true}
+    jobUpdateSchema
   );
+
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
     throw new BadRequestError(errs);
@@ -139,10 +135,11 @@ router.patch("/:id", ensureLoggedIn, checkIfAdmin, async function (req, res, nex
 //  * Admin authorization required
 //  */
 
-// router.delete("/:handle", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
-//   await Company.remove(req.params.handle);
-//   return res.json({ deleted: req.params.handle });
-// });
+router.delete("/:id", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
+
+  await Job.remove(req.params.id);
+  return res.json({ deleted: Number(req.params.id) });
+});
 
 
 module.exports = router;
