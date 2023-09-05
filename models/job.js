@@ -65,7 +65,8 @@ class Job {
         let [whereInsert, values] = results;
 
         const jobsRes = await db.query(`
-            SELECT title,
+            SELECT id,
+                    title,
                     salary,
                     equity,
                     company_handle

@@ -99,6 +99,10 @@ router.get("/:id", async function (req, res, next) {
 
   const id = Number(req.params.id);
   const job = await Job.findById(id);
+
+  console.log("job", job);
+  console.log("res.json",res.json({ job }));
+
   return res.json({ job });
 });
 
