@@ -36,7 +36,7 @@ function authenticateJWT(req, res, next) {
  */
 
 function ensureLoggedIn(req, res, next) {
-  console.log("ensureLoggedIn........")
+//console.log("ensureLoggedIn.......");
   if (res.locals.user?.username) return next();
   throw new UnauthorizedError();
 }
@@ -48,13 +48,13 @@ function ensureLoggedIn(req, res, next) {
  */
 
 function checkIfAdmin(req, res, next) {
-  console.log("checkIfAdmin........")
+//console.log("checkIfAdmin........")
   if (res.locals.user?.isAdmin === true) return next();
   throw new UnauthorizedError();
 }
 
 function checkIfSelfOrAdmin(req, res, next) {
-  console.log("req....", req.params.username);
+  //console.log("check if self or admin.........");
   if (res.locals.user?.isAdmin === true || req.params.username === res.locals.user.username) return next();
   throw new UnauthorizedError();
 }

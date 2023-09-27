@@ -7,6 +7,7 @@ const { sqlForPartialUpdate } = require("../helpers/sql");
 /** Related functions for companies. */
 
 class Company {
+
   /** Create a company (from data), update db, return new company data.
    *
    * data should be { handle, name, description, numEmployees, logoUrl }
@@ -150,6 +151,16 @@ class Company {
     const company = companyRes.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
+
+    const companyJobs = await db.query(
+        `SELECT id, title, salary, equity, company_handle AS "companyHandle"
+           FROM jobs
+           WHERE company_handle = $1
+           ORDER BY id`,
+        [handle],
+    );
+
+    company.jobs = companyJobs.rows;
 
     return company;
   }
