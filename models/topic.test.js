@@ -2,14 +2,14 @@
 
 
 const db = require("../db.js");
-const { BadRequestError, NotFoundError } = require("../expressError");
-const Company = require("./company.js");
+const { BadRequestError, NotFoundError } = require("../expressError.js");
+const Topic = require("./topic.js");
 const {
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-} = require("./_testCommon");
+} = require("./_testCommon.js");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -21,7 +21,7 @@ afterAll(commonAfterAll);
 /************************************** create */
 
 describe("create", function () {
-  const newCompany = {
+  const newTopic = {
     handle: "new",
     name: "New",
     description: "New Description",
@@ -30,8 +30,8 @@ describe("create", function () {
   };
 
   test("works", async function () {
-    let company = await Company.create(newCompany);
-    expect(company).toEqual(newCompany);
+    let topic = await Topic.create(newTopic);
+    expect(topic).toEqual(newTopic);
 
     const result = await db.query(
           `SELECT handle, name, description, num_employees, logo_url
@@ -50,8 +50,8 @@ describe("create", function () {
 
   test("bad request with dupe", async function () {
     try {
-      await Company.create(newCompany);
-      await Company.create(newCompany);
+      await Topic.create(newTopic);
+      await Topic.create(newTopic);
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof BadRequestError).toBeTruthy();
@@ -63,7 +63,7 @@ describe("create", function () {
 
 describe("findAll", function () {
   test("works: no filter", async function () {
-    let companies = await Company.findAll();
+    let companies = await Topic.findAll();
     expect(companies).toEqual([
       {
         handle: "c1",
@@ -98,17 +98,17 @@ describe("findMatching", function () {
         //TODO: pass as an object like next test
         let minEmployees = 350;
         let maxEmployees = 300;
-        // let results = await Company.findMatching(query)
+        // let results = await Topic.findMatching(query)
         // expect(results).toEqual(
         //     "minEmployees cannot be greater than maxEmployees"
         // );
-        expect(()=>company.findMatching(
+        expect(()=>topic.findMatching(
           minEmployees, maxEmployees).toThrowError(BadRequestError));
     });
 
     test("works: min employees", async function () {
         let query = { minEmployees: 3 };
-        let results = await Company.findMatching(query);
+        let results = await Topic.findMatching(query);
         let [whereInsert, values] = results;
         expect(whereInsert).toEqual("WHERE num_employees >= $1");
         expect(values).toEqual([3]);
@@ -116,7 +116,7 @@ describe("findMatching", function () {
 
     test("works: max employees", async function () {
       let query = { maxEmployees: 1 };
-      let results = await Company.findMatching(query)
+      let results = await Topic.findMatching(query)
       let [whereInsert, values] = results;
       expect(whereInsert).toEqual("WHERE num_employees <= $1");
       expect(values).toEqual([1]);
@@ -124,7 +124,7 @@ describe("findMatching", function () {
 
     test("works: nameLike", async function () {
         let query = { nameLike: "c" };
-        let results = await Company.findMatching(query)
+        let results = await Topic.findMatching(query)
         let [whereInsert, values] = results;
         expect(whereInsert).toEqual("WHERE name ILIKE $1");
         expect(values).toEqual(["%c%"]);
@@ -132,7 +132,7 @@ describe("findMatching", function () {
 
     test("works: all 3 functions", async function (){
       let query = { minEmployees: 2, maxEmployees: 3, nameLike: "c" };
-      let results = await Company.findMatching(query)
+      let results = await Topic.findMatching(query)
       let [whereInsert, values] = results;
       expect(whereInsert).toEqual(
         "WHERE num_employees >= $1 AND num_employees <= $2 AND name ILIKE $3"
@@ -146,8 +146,8 @@ describe("findMatching", function () {
 
 describe("get", function () {
   test("works", async function () {
-    let company = await Company.get("c1");
-    expect(company).toEqual({
+    let topic = await Topic.get("c1");
+    expect(topic).toEqual({
       handle: "c1",
       name: "C1",
       description: "Desc1",
@@ -156,9 +156,9 @@ describe("get", function () {
     });
   });
 
-  test("not found if no such company", async function () {
+  test("not found if no such topic", async function () {
     try {
-      await Company.get("nope");
+      await Topic.get("nope");
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
@@ -177,8 +177,8 @@ describe("update", function () {
   };
 
   test("works", async function () {
-    let company = await Company.update("c1", updateData);
-    expect(company).toEqual({
+    let topic = await Topic.update("c1", updateData);
+    expect(topic).toEqual({
       handle: "c1",
       ...updateData,
     });
@@ -204,8 +204,8 @@ describe("update", function () {
       logoUrl: null,
     };
 
-    let company = await Company.update("c1", updateDataSetNulls);
-    expect(company).toEqual({
+    let topic = await Topic.update("c1", updateDataSetNulls);
+    expect(topic).toEqual({
       handle: "c1",
       ...updateDataSetNulls,
     });
@@ -223,9 +223,9 @@ describe("update", function () {
     }]);
   });
 
-  test("not found if no such company", async function () {
+  test("not found if no such topic", async function () {
     try {
-      await Company.update("nope", updateData);
+      await Topic.update("nope", updateData);
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
@@ -234,7 +234,7 @@ describe("update", function () {
 
   test("bad request with no data", async function () {
     try {
-      await Company.update("c1", {});
+      await Topic.update("c1", {});
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof BadRequestError).toBeTruthy();
@@ -246,15 +246,15 @@ describe("update", function () {
 
 describe("remove", function () {
   test("works", async function () {
-    await Company.remove("c1");
+    await Topic.remove("c1");
     const res = await db.query(
         "SELECT handle FROM companies WHERE handle='c1'");
     expect(res.rows.length).toEqual(0);
   });
 
-  test("not found if no such company", async function () {
+  test("not found if no such topic", async function () {
     try {
-      await Company.remove("nope");
+      await Topic.remove("nope");
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();

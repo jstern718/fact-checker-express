@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, checkIfAdmin, checkIfSelfOrAdmin } = require("../middleware/auth");
+// const { ensureLoggedIn, checkIfAdmin, checkIfSelfOrAdmin } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
@@ -27,7 +27,7 @@ const router = express.Router();
  * Admin authorization required
  **/
 
-router.post("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
+router.post("/", async function (req, res, next) {
   //console.log("create user........")
   const validator = jsonschema.validate(
       req.body,
@@ -53,7 +53,7 @@ router.post("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
  * Admin authorization required
  **/
 
-router.get("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
+router.get("/", async function (req, res, next) {
   const users = await User.findAll();
   return res.json({ users });
 });
@@ -66,7 +66,7 @@ router.get("/", ensureLoggedIn, checkIfAdmin, async function (req, res, next) {
  * Self or admin authorization required
  **/
 
-router.get("/:username", ensureLoggedIn, checkIfSelfOrAdmin, async function (req, res, next) {
+router.get("/:username", async function (req, res, next) {
   const user = await User.get(req.params.username);
   return res.json({ user });
 });
@@ -82,7 +82,7 @@ router.get("/:username", ensureLoggedIn, checkIfSelfOrAdmin, async function (req
  * Self or admin authorization required
  **/
 
-router.patch("/:username", ensureLoggedIn, checkIfSelfOrAdmin, async function (req, res, next) {
+router.patch("/:username", async function (req, res, next) {
   const validator = jsonschema.validate(
       req.body,
       userUpdateSchema,
@@ -103,7 +103,7 @@ router.patch("/:username", ensureLoggedIn, checkIfSelfOrAdmin, async function (r
  * Self or admin authorization required
  **/
 
-router.delete("/:username", ensureLoggedIn, checkIfSelfOrAdmin, async function (req, res, next) {
+router.delete("/:username", async function (req, res, next) {
   await User.remove(req.params.username);
   return res.json({ deleted: req.params.username });
 });

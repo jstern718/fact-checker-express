@@ -13,7 +13,7 @@ const PORT = +process.env.PORT || 3001;
 function getDatabaseUri() {
   return (process.env.NODE_ENV === "test")
       ? process.env.DATABASE_URL_TEST
-      : process.env.DATABASE_URL || "jobly";
+      : process.env.DATABASE_URL || "factchecker";
 }
 
 // Speed up bcrypt during tests, since the algorithm safety isn't being tested
@@ -23,7 +23,7 @@ const BCRYPT_WORK_FACTOR = process.env.NODE_ENV === "test" ? 1 : 12;
 
 
 console.log(
-        `"Jobly Express Config:"
+        `"Fact Checker Express Config:"
     "SECRET_KEY:", ${SECRET_KEY}
     "PORT:", ${PORT.toString()}
     "BCRYPT_WORK_FACTOR", ${BCRYPT_WORK_FACTOR}

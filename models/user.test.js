@@ -164,18 +164,18 @@ describe("update", function () {
   };
 
   test("works", async function () {
-    let job = await User.update("u1", updateData);
-    expect(job).toEqual({
+    let post = await User.update("u1", updateData);
+    expect(post).toEqual({
       username: "u1",
       ...updateData,
     });
   });
 
   test("works: set password", async function () {
-    let job = await User.update("u1", {
+    let post = await User.update("u1", {
       password: "new",
     });
-    expect(job).toEqual({
+    expect(post).toEqual({
       username: "u1",
       firstName: "U1F",
       lastName: "U1L",

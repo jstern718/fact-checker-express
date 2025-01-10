@@ -2,7 +2,7 @@
 
 const db = require("../db.js");
 const User = require("../models/user");
-const Company = require("../models/company");
+const Company = require("../models/topic.js");
 const { createToken } = require("../helpers/tokens");
 
 let jobTestIds = [];

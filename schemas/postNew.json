@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "topic/postNew.schema.json",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minLength": 1,
+        "maxLength": 30
+      },
+      "username": {
+        "type": "string",
+        "minimumLength": 1
+      },
+      "topicName": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 30
+      },
+      "date": {
+        "type": "string",
+        "minimumLength": 5
+      },
+      "content": {
+        "type": "string",
+        "minimumLength": 1
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "username",
+      "topicName",
+      "content"
+    ]
+  }

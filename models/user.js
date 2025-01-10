@@ -26,10 +26,10 @@ class User {
     const result = await db.query(`
         SELECT username,
                password,
-               first_name AS "firstName",
-               last_name  AS "lastName",
+               firstName,
+               lastName,
                email,
-               is_admin   AS "isAdmin"
+               isAdmin
         FROM users
         WHERE username = $1`, [username],
     );
@@ -73,17 +73,17 @@ class User {
                 INSERT INTO users
                 (username,
                  password,
-                 first_name,
-                 last_name,
+                 firstName,
+                 lastName,
                  email,
-                 is_admin)
+                 isAdmin)
                 VALUES ($1, $2, $3, $4, $5, $6)
                 RETURNING
                     username,
-                    first_name AS "firstName",
-                    last_name AS "lastName",
+                    firstName,
+                    lastName,
                     email,
-                    is_admin AS "isAdmin"`, [
+                    isAdmin`, [
           username,
           hashedPassword,
           firstName,
@@ -100,16 +100,16 @@ class User {
 
   /** Find all users.
    *
-   * Returns [{ username, first_name, last_name, email, is_admin }, ...]
+   * Returns [{ username, firstName, lastName, email, isAdmin }, ...]
    **/
 
   static async findAll() {
     const result = await db.query(`
         SELECT username,
-               first_name AS "firstName",
-               last_name  AS "lastName",
+               firstName,
+               lastName,
                email,
-               is_admin   AS "isAdmin"
+               isAdmin
         FROM users
         ORDER BY username`,
     );
@@ -119,8 +119,8 @@ class User {
 
   /** Given a username, return data about user.
    *
-   * Returns { username, first_name, last_name, is_admin, jobs }
-   *   where jobs is { id, title, company_handle, company_name, state }
+   * Returns { username, first_name, last_name, is_admin, posts }
+   *   where posts is { id, title, topic_handle, topic_name, state }
    *
    * Throws NotFoundError if user not found.
    **/
@@ -128,10 +128,10 @@ class User {
   static async get(username) {
     const userRes = await db.query(`
         SELECT username,
-               first_name AS "firstName",
-               last_name  AS "lastName",
+               firstName,
+               lastName,
                email,
-               is_admin   AS "isAdmin"
+                isAdmin
         FROM users
         WHERE username = $1`, [username],
     );
@@ -173,9 +173,9 @@ class User {
     const { setCols, values } = sqlForPartialUpdate(
         data,
         {
-          firstName: "first_name",
-          lastName: "last_name",
-          isAdmin: "is_admin",
+          firstName: "firstName",
+          lastName: "lastName",
+          isAdmin: "isAdmin",
         });
     const usernameVarIdx = "$" + (values.length + 1);
 
@@ -184,10 +184,10 @@ class User {
         SET ${setCols}
         WHERE username = ${usernameVarIdx}
         RETURNING username,
-            first_name AS "firstName",
-            last_name AS "lastName",
+            firstName,
+            lastName,
             email,
-            is_admin AS "isAdmin"`;
+            isAdmin`;
     const result = await db.query(querySql, [...values, username]);
     const user = result.rows[0];
 

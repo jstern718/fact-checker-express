@@ -1,10 +1,10 @@
 <div align="center">
   <h1 align="center">
-    Jobly Backend
+    Factchecker Backend
   </h1>
 </div>
 
-This is the Express backend for Jobly.
+This is the Express backend for Factchecker.
 
 ### Tech Stack:
 * Javascript
@@ -21,11 +21,11 @@ This is the Express backend for Jobly.
 
         npm install
 4. Start server:
-   
+
         node server.js
 
 ### Testing:
-  
+
 * Run all tests:
 
         jest -i
@@ -36,17 +36,13 @@ This is the Express backend for Jobly.
 
 ### Routes:
 
-* POST: /auth/token 
+* POST: /auth/token
 
 * POST: /auth/register
 
-* GET/POST: /companies
+* GET/POST: /topics
 
-  ![all companies](/screenshots/companiesRoute.png?raw=true)
-
-  ![companies with "Edwards"](/screenshots/companiesLike.png?raw=true)
-
-* GET/PATCH/DELETE: /companies:handle
+* GET/PATCH/DELETE: /topics:handle
 
 * GET/POST: /users
 

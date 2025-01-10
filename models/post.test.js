@@ -1,15 +1,15 @@
 "use strict";
 
 const db = require("../db.js");
-const { BadRequestError, NotFoundError } = require("../expressError");
-const Job = require("./job.js");
+const { BadRequestError, NotFoundError } = require("../expressError.js");
+const Post = require("./post.js");
 const {
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  jobTestIds,
-} = require("./_testCommon");
+  postTestIds,
+} = require("./_testCommon.js");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -19,27 +19,27 @@ afterAll(commonAfterAll);
 /************************************** create */
 
 describe("create", function () {
-  const newJob = {
+  const newPost = {
     "title": "j3",
     "salary": 300,
     "equity": "0.002",
     "companyHandle": "c1",
   };
 
-  const duplicateJob = {
+  const duplicatePost = {
     "title": "j1",
     "salary": 100,
     "equity": "0",
     "companyHandle": "c1",
   };
 
-  test("works: creates new job", async function () {
-    let job = await Job.create(newJob);
-    expect(job).toEqual(newJob);
+  test("works: creates new post", async function () {
+    let post = await Post.create(newPost);
+    expect(post).toEqual(newPost);
 
     const result = await db.query(
           `SELECT title, salary, equity, company_handle
-           FROM jobs
+           FROM posts
            WHERE title = 'j3'`);
     expect(result.rows).toEqual([
       {
@@ -51,9 +51,9 @@ describe("create", function () {
     ]);
   });
 
-  test("fails: to create duplicate job", async function () {
+  test("fails: to create duplicate post", async function () {
     try {
-        await Job.create(duplicateJob);
+        await Post.create(duplicatePost);
         throw new Error("fail test, you shouldn't get here");
     } catch (err) {
         expect(err instanceof BadRequestError).toBeTruthy();
@@ -66,8 +66,8 @@ describe("create", function () {
 
 describe("findAll", function () {
     test("works: no filter", async function () {
-        let jobs = await Job.findAll();
-        expect(jobs).toEqual([
+        let posts = await Post.findAll();
+        expect(posts).toEqual([
         {
             title: "j1",
             salary: 100,
@@ -91,8 +91,8 @@ describe("findAll", function () {
 
     test("works: find all w/ min salary", async function () {
         let query = { minSalary: 150 };
-        let jobs = await Job.findAll(query);
-        expect(jobs).toEqual([
+        let posts = await Post.findAll(query);
+        expect(posts).toEqual([
         {
             title: "j2",
             salary: 200,
@@ -110,8 +110,8 @@ describe("findAll", function () {
 
     test("works: find all that have equity", async function () {
         let query = { hasEquity: true };
-        let jobs = await Job.findAll(query);
-        expect(jobs).toEqual([{
+        let posts = await Post.findAll(query);
+        expect(posts).toEqual([{
             title: "j2",
             salary: 200,
             equity: "0.01",
@@ -128,9 +128,9 @@ describe("findAll", function () {
 
     test("works: find all w/ titleLike", async function () {
         let query = { titleLike: "j1" };
-        let jobs = await Job.findAll(query)
+        let posts = await Post.findAll(query)
 
-        expect(jobs).toEqual([
+        expect(posts).toEqual([
             {
                 title: "j1",
                 salary: 100,
@@ -142,8 +142,8 @@ describe("findAll", function () {
 
     test("works: find all w/ 3 functions", async function (){
         let query = { minSalary: 150, hasEquity: true, titleLike: "g" };
-        let jobs = await Job.findAll(query);
-        expect(jobs).toEqual([
+        let posts = await Post.findAll(query);
+        expect(posts).toEqual([
             {
                 title: "g1",
                 salary: 200,
@@ -160,7 +160,7 @@ describe("findMatching", function () {
 
     test("works: min salary", async function () {
         let query = { minSalary: 150 };
-        let results = await Job.findMatching(query);
+        let results = await Post.findMatching(query);
         let [whereInsert, values] = results;
         expect(whereInsert).toEqual("WHERE salary >= $1");
         expect(values).toEqual([150]);
@@ -168,14 +168,14 @@ describe("findMatching", function () {
 
     test("works: has equity", async function () {
       let query = { hasEquity: true };
-      let results = await Job.findMatching(query);
+      let results = await Post.findMatching(query);
       let [whereInsert, values] = results;
       expect(whereInsert).toEqual("WHERE equity > 0");
     });
 
     test("works: titleLike", async function () {
         let query = { titleLike: "j1" };
-        let results = await Job.findMatching(query)
+        let results = await Post.findMatching(query)
         let [whereInsert, values] = results;
         expect(whereInsert).toEqual("WHERE title ILIKE $1");
         expect(values).toEqual(["%j1%"]);
@@ -183,7 +183,7 @@ describe("findMatching", function () {
 
     test("works: all 3 functions", async function (){
       let query = { minSalary: 150, hasEquity: true, titleLike: "g" };
-      let results = await Job.findMatching(query);
+      let results = await Post.findMatching(query);
       let [whereInsert, values] = results;
       expect(whereInsert).toEqual(
         "WHERE salary >= $1 AND equity > 0 AND title ILIKE $2"
@@ -198,9 +198,9 @@ describe("findMatching", function () {
 describe("findById", function () {
 
     test("works", async function () {
-        let job = await Job.findById(jobTestIds[0]);
-        expect(job).toEqual({
-            id: jobTestIds[0],
+        let post = await Post.findById(postTestIds[0]);
+        expect(post).toEqual({
+            id: postTestIds[0],
             title: "j1",
             salary: 100,
             equity: "0",
@@ -208,9 +208,9 @@ describe("findById", function () {
         },);
     });
 
-    test("fails: not found if no such job", async function () {
+    test("fails: not found if no such post", async function () {
         try {
-            await Job.findById(0);
+            await Post.findById(0);
             throw new Error("fail test, you shouldn't get here");
         } catch (err) {
             expect(err instanceof NotFoundError).toBeTruthy();
@@ -222,17 +222,17 @@ describe("findById", function () {
 
 describe("update", function () {
 
-  test("works: updates job data", async function () {
+  test("works: updates post data", async function () {
 
-    const jobId = jobTestIds[0];
+    const postId = postTestIds[0];
     const updateData = {
         salary: 200,
         equity: "0.1",
     };
-    let updatedJob = await Job.update(jobId, updateData);
+    let updatedPost = await Post.update(postId, updateData);
 
-    expect(updatedJob).toEqual({
-        id: jobId,
+    expect(updatedPost).toEqual({
+        id: postId,
         title: "j1",
         salary: 200,
         equity: "0.1",
@@ -242,17 +242,17 @@ describe("update", function () {
 
   test("works: no changes", async function () {
 
-    const jobId = jobTestIds[0];
+    const postId = postTestIds[0];
     const updateData = {
         title: "j1",
         salary: 100,
         equity: "0",
         company_handle: "c1"
     };
-    let updatedJob = await Job.update(jobId, updateData);
+    let updatedPost = await Post.update(postId, updateData);
 
-    expect(updatedJob).toEqual({
-        id: jobId,
+    expect(updatedPost).toEqual({
+        id: postId,
         title: "j1",
         salary: 100,
         equity: "0",
@@ -262,11 +262,11 @@ describe("update", function () {
 
   test("fail: bad request with no data", async function () {
 
-    const jobId = jobTestIds[0];
+    const postId = postTestIds[0];
     const updateData = {};
 
     try {
-      await Job.update(jobId, updateData);
+      await Post.update(postId, updateData);
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof BadRequestError).toBeTruthy();
@@ -277,18 +277,18 @@ describe("update", function () {
 // /************************************** remove */
 
 describe("remove", function () {
-  test("works: deletes job", async function () {
+  test("works: deletes post", async function () {
 
-    const jobId = jobTestIds[0];
-    await Job.remove(jobId);
-    const deletedJob = await db.query(
-        `SELECT id FROM jobs WHERE id=${jobId}`);
-    expect(deletedJob.rows.length).toEqual(0);
+    const postId = postTestIds[0];
+    await Post.remove(postId);
+    const deletedPost = await db.query(
+        `SELECT id FROM posts WHERE id=${postId}`);
+    expect(deletedPost.rows.length).toEqual(0);
   });
 
-  test("fail: not found/deleted if no such job", async function () {
+  test("fail: not found/deleted if no such post", async function () {
     try {
-      await Job.remove(1000000);
+      await Post.remove(1000000);
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();

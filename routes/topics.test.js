@@ -22,7 +22,7 @@ afterAll(commonAfterAll);
 /************************************** POST /companies */
 
 describe("POST /companies", function () {
-  const newCompany = {
+  const newTopic = {
     handle: "new",
     name: "New",
     logoUrl: "http://new.img",
@@ -33,18 +33,18 @@ describe("POST /companies", function () {
   test("ok for admin", async function () {
     const resp = await request(app)
         .post("/companies")
-        .send(newCompany)
+        .send(newTopic)
         .set("authorization", `Bearer ${u3Token}`);
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
-      company: newCompany,
+      topic: newTopic,
     });
   });
 
   test("unauth for users", async function () {
     const resp = await request(app)
         .post("/companies/")
-        .send(newCompany)
+        .send(newTopic)
         .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(401);
   });
@@ -64,7 +64,7 @@ describe("POST /companies", function () {
     const resp = await request(app)
         .post("/companies")
         .send({
-          ...newCompany,
+          ...newTopic,
           logoUrl: "not-a-url",
         })
         .set("authorization", `Bearer ${u3Token}`);
@@ -197,7 +197,7 @@ describe("GET /companies", function () {
   test("fails: min>max employees", async function () {
     const resp = await request(app).get(
       "/companies/?nameLike=c&maxEmployees=3&minEmployees=2");
-      expect(()=>company.findMatching(
+      expect(()=>topic.findMatching(
         minEmployees, maxEmployees).toThrowError(BadRequestError));
   });
 });
@@ -208,7 +208,7 @@ describe("GET /companies/:handle", function () {
   test("works for anon", async function () {
     const resp = await request(app).get(`/companies/c1`);
     expect(resp.body).toEqual({
-      company: {
+      topic: {
         handle: "c1",
         name: "C1",
         description: "Desc1",
@@ -218,10 +218,10 @@ describe("GET /companies/:handle", function () {
     });
   });
 
-  test("works for anon: company w/o jobs", async function () {
+  test("works for anon: topic w/o jobs", async function () {
     const resp = await request(app).get(`/companies/c2`);
     expect(resp.body).toEqual({
-      company: {
+      topic: {
         handle: "c2",
         name: "C2",
         description: "Desc2",
@@ -231,7 +231,7 @@ describe("GET /companies/:handle", function () {
     });
   });
 
-  test("not found for no such company", async function () {
+  test("not found for no such topic", async function () {
     const resp = await request(app).get(`/companies/nope`);
     expect(resp.statusCode).toEqual(404);
   });
@@ -248,7 +248,7 @@ describe("PATCH /companies/:handle", function () {
         })
         .set("authorization", `Bearer ${u3Token}`);
     expect(resp.body).toEqual({
-      company: {
+      topic: {
         handle: "c1",
         name: "C1-new",
         description: "Desc1",
@@ -278,7 +278,7 @@ describe("PATCH /companies/:handle", function () {
   });
 
 
-  test("not found on no such company", async function () {
+  test("not found on no such topic", async function () {
     const resp = await request(app)
         .patch(`/companies/nope`)
         .send({
@@ -333,7 +333,7 @@ describe("DELETE /companies/:handle", function () {
     expect(resp.statusCode).toEqual(401);
   });
 
-  test("not found for no such company", async function () {
+  test("not found for no such topic", async function () {
     const resp = await request(app)
         .delete(`/companies/nope`)
         .set("authorization", `Bearer ${u3Token}`);

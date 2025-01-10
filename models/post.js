@@ -4,77 +4,69 @@ const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
 
-/** Related functions for jobs. */
+/** Related functions for posts. */
 
-class Job {
+class Post {
 
-  /** Create a job (from data), update db, return new job data.
+  /** Create a post (from data), update db, return new post data.
    *
    * data should be { title, salary, equity, company_handle }
    *
    * Returns { title, salary, equity, companyHandle }
    *
-   * Throws BadRequestError if job already in database.
+   * Throws BadRequestError if post already in database.
    * */
 
-    static async create({ title, salary, equity, companyHandle }) {
-
-        const duplicateCheck = await db.query(`
-            SELECT title
-            FROM jobs
-            WHERE title = $1
-            AND company_handle = $2`,
-            [title, companyHandle],
-        );
-
-        if (duplicateCheck.rows[0]){
-            throw new BadRequestError(`Duplicate job: ${title} at ${companyHandle}`);
-        }
+    static async create({ username, content, topicName }) {
+        console.log("create post runs");
+        console.log("res", res.locals.user);
 
         const result = await db.query(`
-                    INSERT INTO jobs (title,
-                                        salary,
-                                        equity,
-                                        company_handle)
-                    VALUES ($1, $2, $3, $4)
-                    RETURNING title,
-                        salary,
-                        equity,
-                        company_handle AS "companyHandle"`, [
-                    title,
-                    salary,
-                    equity,
-                    companyHandle,
+                    INSERT INTO posts (username,
+                                        topicName,
+                                        date,
+                                        content)
+                    VALUES ($1, $2, NOW(), $3)
+                    RETURNING id,
+                                username,
+                                topicName,
+                                date,
+                                content`, [
+                    username,
+                    topicName,
+                    content
                     ],
         );
 
-        const job = result.rows[0];
+        const post = result.rows[0];
 
 
-        return job;
+        return post;
     }
 
-    /** Finds all jobs or finds filtered list of jobs.
+    /** Finds all posts or finds filtered list of posts.
     * Takes query string from get request.
     * Returns [{ title, salary, equity, companyHandle }, ...]
     * */
 
     static async findAll(query) {
+        console.log("find all runs")
 
-        let results = Job.findMatching(query)
+
+        let results = Post.findMatching(query)
         let [whereInsert, values] = results;
 
-        const jobsRes = await db.query(`
+        const postsRes = await db.query(`
             SELECT id,
-                    title,
-                    salary,
-                    equity,
-                    company_handle
-                    FROM jobs
+                    username,
+                    topicName,
+                    date,
+                    content
+                    FROM posts
             ${whereInsert}
             ORDER BY id`,
         values);
-        return jobsRes.rows;
+        return postsRes.rows;
     }
 
     /** Assists findAll() in search by adding filtering capability.
@@ -85,6 +77,8 @@ class Job {
     * string.* */
 
     static findMatching(query) {
+        console.log("find matching runs")
+
 
         let queryStrings = []
         let values = [];
@@ -93,26 +87,12 @@ class Job {
 
         if (query){
 
-            //minSalary
-            if (query.minSalary){
-                const minQueryString = `salary >= $${count}`;
+            //contentLike
+            if (query.contentLike){
+                const contentQueryString = `content ILIKE $${count}`;
                 count += 1;
-                queryStrings.push(minQueryString);
-                values.push(query.minSalary);
-            }
-
-            //hasEquity
-            if (query.hasEquity === true){
-                const equityQueryString = `equity > 0`;
-                queryStrings.push(equityQueryString);
-            }
-
-            //titleLike
-            if (query.titleLike){
-                const titleQueryString = `title ILIKE $${count}`;
-                count += 1;
-                queryStrings.push(titleQueryString);
-                values.push(`%${ query.titleLike }%`);
+                 queryStrings.push(contentQueryString);
+                values.push(`%${ query.contentLike }%`);
             }
 
             whereInsert = queryStrings.join(" AND ");
@@ -125,7 +105,7 @@ class Job {
         return [whereInsert, values];
   }
 
-    /** Given a job id, return data about job.
+    /** Given a post id, return data about post.
     *
     * Returns { id, title, salary, equity, company_handle }
     *
@@ -133,34 +113,34 @@ class Job {
     **/
 
     static async findById(id){
-        //console.log("run find by Id");
+        console.log("find by id runs")
 
         if (typeof id != "number"){
-            throw new NotFoundError(`No job: ${id}`);
+            throw new NotFoundError(`No post: ${id}`);
         }
 
         const results = await db.query(`
             SELECT id,
-                title,
-                salary,
-                equity,
-                company_handle AS "companyHandle"
-            FROM jobs
+                    username,
+                    topicName,
+                    date,
+                    content
+            FROM posts
             WHERE id = $1`, [id]);
 
-        const job = results.rows[0];
+        const post = results.rows[0];
 
-        if (!job) throw new NotFoundError(`No job: ${id}`);
+        if (!post) throw new NotFoundError(`No post: ${id}`);
 
-        return job;
+        return post;
     }
 
-  /** Update job data with `data`.
+  /** Update post data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the
    * fields; this only changes provided ones.
    *
-   * TAKES: id (of job), data.
+   * TAKES: id (of post), data.
    * Data can include: {title, salary, equity, companyHandle}
    *
    * SetCols takes a formated request from the results of the sqlForUpdate
@@ -176,34 +156,35 @@ class Job {
    */
 
   static async update(id, data) {
+    console.log("update post runs")
+
     const { setCols, values } = sqlForPartialUpdate(
-      data,
-      { companyHandle: "company_Handle" }
+      data
     );
 
     if(!setCols){ throw new BadRequestError(`No data entered for update`);}
 
     const querySql = `
-        UPDATE jobs
+        UPDATE posts
         SET ${setCols}
         WHERE id = ${id}
         RETURNING
             id,
-            title,
-            salary,
-            equity,
-            company_handle AS "companyHandle"`;
+            username,
+            topicName,
+            date,
+            content`;
 
     const result = await db.query(querySql, [...values]);
-    const updatedJob = result.rows[0];
+    const updatedPost = result.rows[0];
 
-    if (!updatedJob) throw new NotFoundError(`No updatedJob: ${id}`);
+    if (!updatedPost) throw new NotFoundError(`No updatedPost: ${id}`);
 
     //NOTE: didn't include object name by putting in braces. Makes more sense
     //this way, but isn't consistent with previous models. Check if either
     //method presents issues later
 
-    return updatedJob;
+    return updatedPost;
   }
 
   /** Delete given company from database; returns undefined.
@@ -212,16 +193,17 @@ class Job {
    **/
 
   static async remove(id) {
+    console.log("remove post runs")
     const result = await db.query(`
         DELETE
-        FROM jobs
+        FROM posts
         WHERE id = $1
         RETURNING id`, [id]);
 
-    const deletedJob = result.rows[0];
+    const deletedPost = result.rows[0];
 
-    if (!deletedJob) throw new NotFoundError(`No job: ${id}`);
+    if (!deletedPost) throw new NotFoundError(`No post: ${id}`);
   }
 }
 
-module.exports = Job;
+module.exports = Post;
